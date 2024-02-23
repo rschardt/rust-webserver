@@ -1,5 +1,5 @@
 {
-  description = "Flake for rust-website";
+  description = "Flake for rust-webserver";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-23.11";
@@ -13,19 +13,19 @@
       in
       rec {
         packages.default = pkgs.stdenv.mkDerivation {
-          name = "rust-website";
+          name = "rust-webserver";
           src = ./src;
           buildInputs = with pkgs; [
             rustc
           ];
           installPhase = ''
-            rustc $src/rust-website.rs
+            rustc $src/rust-webserver.rs
             mkdir -p $out/bin/
-            mv ./rust-website $out/bin
+            mv ./rust-webserver $out/bin
           '';
         };
 
-        apps.default = { type = "app"; program = "${packages.default}/bin/rust-website"; };
+        apps.default = { type = "app"; program = "${packages.default}/bin/rust-webserver"; };
       }
     );
 }
