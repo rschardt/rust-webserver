@@ -104,11 +104,10 @@ fn send_response(mut tcp_stream: &TcpStream, get_header: &str, web_root: &Path) 
 	    joined_path.push(web_root);
 	    joined_path.push(lead_slash_trimmed);
 	    //println!("Path: {joined_path:#?}");
-	    let absolute_path = std::fs::canonicalize(joined_path).unwrap();
-	    //println!("Path: {absolute_path:#?}");
 
-	    match File::open(absolute_path) {
-		Ok(file_handle) => {
+	    match std::fs::canonicalize(joined_path) {
+		Ok(absolute_path) => {
+		    let file_handle = File::open(absolute_path).unwrap();
 		    let mut buf_reader = BufReader::new(file_handle);
 		    buf_reader.read_to_string(&mut body).expect("couldn't read file buffer");
 		    //println!("buffer created, ready to send: {body:?}");
