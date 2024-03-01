@@ -12,17 +12,20 @@
         pkgs = nixpkgs.legacyPackages.${system};
       in
       rec {
-        packages.default = pkgs.stdenv.mkDerivation {
-          name = "rust-webserver";
-          src = ./src;
-          buildInputs = with pkgs; [
-            rustc
-          ];
-          installPhase = ''
-            rustc $src/rust-webserver.rs
-            mkdir -p $out/bin/
-            mv ./rust-webserver $out/bin
-          '';
+        packages = rec {
+          default = rust-webserver;
+          rust-webserver = pkgs.stdenv.mkDerivation {
+            name = "rust-webserver";
+            src = ./src;
+            buildInputs = with pkgs; [
+              rustc
+            ];
+            installPhase = ''
+                rustc $src/rust-webserver.rs
+                mkdir -p $out/bin/
+                mv ./rust-webserver $out/bin
+            '';
+          };
         };
 
         apps.default = { type = "app"; program = "${packages.default}/bin/rust-webserver"; };
