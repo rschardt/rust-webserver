@@ -82,6 +82,7 @@ fn send_response(mut tcp_stream: &TcpStream, get_header: &str, web_root: &Path) 
 
     // Status code and body determination
     let mut status_code = "200 OK";
+    let mut file_extension = String::from("");
     let mut body = String::from("");
 
     if get_header.is_empty() {
@@ -107,6 +108,7 @@ fn send_response(mut tcp_stream: &TcpStream, get_header: &str, web_root: &Path) 
 
 	    match std::fs::canonicalize(joined_path) {
 		Ok(absolute_path) => {
+		    file_extension = determine_file_extension(&absolute_path);
 		    let file_handle = File::open(absolute_path).unwrap();
 		    let mut buf_reader = BufReader::new(file_handle);
 		    buf_reader.read_to_string(&mut body).expect("couldn't read file buffer");
@@ -125,7 +127,7 @@ fn send_response(mut tcp_stream: &TcpStream, get_header: &str, web_root: &Path) 
     let http_header = format!("HTTP/1.1 {status_code}");
     let server_header = "Server: rust-webserver";
     let accept_ranges_header = "Accept-Ranges: bytes";
-    let content_type_header = "Content-Type: text/html";
+    let content_type_header = format!("Content-Type: {file_extension}");
     let allow_header = "Allow: GET";
 
     let server_response = format!("{http_header}\n{server_header}\n{accept_ranges_header}\n{content_type_header}\n{allow_header}\n\n{body}");
@@ -133,4 +135,21 @@ fn send_response(mut tcp_stream: &TcpStream, get_header: &str, web_root: &Path) 
     //println!("bytes written: {written_bytes:?}");
 
     tcp_stream.flush().expect("unable to flush tcp_stream");
+}
+
+fn determine_file_extension(absolute_path: &PathBuf) -> String {
+    match absolute_path.extension() {
+	None => String::from("text/html"),
+	Some(extension) => {
+	    match extension.to_str().unwrap_or("") {
+		"css" => String::from("text/css"),
+		"html" => String::from("text/html"),
+		"png" => String::from("image/png"),
+		"jpg" | "jpeg" => String::from("image/jpeg"),
+		"gif" => String::from("image/gif"),
+		"pdf" => String::from("application/pdf"),
+		_ => String::from("text/html"),
+	    }
+	},
+    }
 }
